@@ -3,6 +3,7 @@ import {
     ref,
     getDownloadURL,
     uploadBytesResumable,
+    deleteObject
   } from "firebase/storage";
   import app from "../config/firebaseConfig.js";
   import { v4 as uuidv4 } from 'uuid';

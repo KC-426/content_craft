@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 const app = express();
 dotenv.config({ path: "config/.env" });
 
+app.use(express.json());
+
 const PORT = process.env.PORT;
 const { MONGODB_URI } = process.env;
 

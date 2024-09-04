@@ -2,7 +2,10 @@ import userSchema from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { deleteImageFromFirebaseStorage, uploadUserProfileImageToFirebaseStorage } from "../utils/helperFunctions.js";
+import {
+  deleteImageFromFirebaseStorage,
+  uploadUserProfileImageToFirebaseStorage,
+} from "../utils/helperFunctions.js";
 
 dotenv.config({ path: "config/.env" });
 
@@ -16,19 +19,18 @@ export const userSignup = async (req, res) => {
         .json({ message: "User already exist please login !" });
     }
 
-    if (confirmPassword != password) {
+    if (password !== confirmPassword) {
       return res
         .status(400)
         .json({ message: "Password and confirmPassword should match !" });
     }
 
-    const hashedPwd = bcrypt.hash(12, password);
+    const hashedPwd = await bcrypt.hash(password, 12);
 
     const newUser = new userSchema({
       fullName,
       email,
       password: hashedPwd,
-      confirmPassword: hashedPwd,
     });
 
     const result = await newUser.save();
@@ -95,7 +97,7 @@ export const userProfile = async (req, res) => {
       (user.description = description),
       (user.image = imageUrl);
 
-    await newUser.save();
+    await user.save();
 
     return res
       .status(200)
@@ -110,7 +112,7 @@ export const fetchUserProfile = async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await userSchema.findById(userId);
-    if (user) {
+    if (!user) {
       return res.status(404).json({ message: "User not found !" });
     }
 
@@ -142,5 +144,39 @@ export const deleteUser = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Internal server error !" });
+  }
+};
+
+
+
+export const updateUserProfile = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const { fullName, email, description, profession, organization } = req.body;
+    const user = await userSchema.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    if (user.image && user.image.url) {
+      await deleteImageFromFirebaseStorage(user.image.url);
+    }
+
+    const imageUrl = await uploadUserProfileImageToFirebaseStorage(req, res);
+    user.image = imageUrl;
+
+    user.fullName = fullName || user.fullName;
+    user.email = email || user.email;
+    user.description = description || user.description;
+    user.profession = profession || user.profession;
+    user.organization = organization || user.organization;
+
+    await user.save();
+
+    res.status(200).json({ message: "User profile updated!", user });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error!" });
   }
 };
