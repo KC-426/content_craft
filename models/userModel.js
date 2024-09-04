@@ -24,16 +24,18 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     image: {
-        name: {
-            type: String,
-        }, 
-        path: {
-            type: String,
-        },
-        url : {
-            type: String,
-        }
+      name: {
+        type: String,
       },
+      path: {
+        type: String,
+      },
+      url: {
+        type: String,
+      },
+    },
+    twoFactorSecret: String,
+    isTwoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

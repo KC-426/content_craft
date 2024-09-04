@@ -1,6 +1,6 @@
 import express from "express"
 import multer from "multer"
-import { deleteUser, fetchUserProfile, updateUserProfile, userLogin, userProfile, userSignup } from "../controllers/userController.js"
+import { deleteUser, fetchUserProfile, generateQrAndSecretKey, logoutUser, updateUserProfile, userLogin, userProfile, userSignup, validate2FALogin, verify2FASecret } from "../controllers/userController.js"
 
 const storage = multer.memoryStorage()
 const upload = multer({
@@ -16,6 +16,12 @@ router.route("/complete/user/:userId").post(upload.single("image"), userProfile)
 router.route("/fetch/user/:userId").get(fetchUserProfile);
 router.route("/delete/user/:userId").delete(deleteUser);
 router.route("/update/user/:userId").put(upload.single('image'), updateUserProfile);
+router.route("/logout/user").post(logoutUser);
+router.route("/generate/secretkey/qr").post(generateQrAndSecretKey);
+router.route("/verify/secretkey").post(verify2FASecret);
+router.route("/validate/twofactor/login").post(validate2FALogin);
+
+
 
 
 
