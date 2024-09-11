@@ -6,32 +6,45 @@ import {
   deleteImageFromFirebaseStorage,
   uploadUserProfileImageToFirebaseStorage,
 } from "../utils/helperFunctions.js";
-import speakeasy from 'speakeasy'
-import qrcode from  "qrcode"
-
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
 
 dotenv.config({ path: "config/.env" });
 
 export const userSignup = async (req, res) => {
   try {
-    const { fullName, email, password, confirmPassword } = req.body;
+    const { firstName, lastName, email, password, confirmPassword } = req.body;
+    
+    // Check if user already exists
     const user = await userSchema.findOne({ email });
     if (user) {
       return res
         .status(400)
-        .json({ message: "User already exist please login !" });
+        .json({ message: "User already exists, please login!" });
     }
 
+    // Validate that passwords match
     if (password !== confirmPassword) {
       return res
         .status(400)
-        .json({ message: "Password and confirmPassword should match !" });
+        .json({ message: "Password and confirm password should match!" });
     }
 
+    // Validate password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+      });
+    }
+
+    // Hash password
     const hashedPwd = await bcrypt.hash(password, 12);
 
+    // Create new user
     const newUser = new userSchema({
-      fullName,
+      firstName,
+      lastName,
       email,
       password: hashedPwd,
     });
@@ -41,9 +54,10 @@ export const userSignup = async (req, res) => {
     return res.status(200).json({ message: "Signup successful!", result });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ message: "Internal server error !" });
+    return res.status(500).json({ message: "Internal server error!" });
   }
 };
+
 
 export const userLogin = async (req, res) => {
   try {
@@ -203,12 +217,14 @@ export const generateQrAndSecretKey = async (req, res) => {
   try {
     const user = await userSchema.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Generate the secret and manually create the otpauth URL
     const secret = speakeasy.generateSecret({ length: 20 });
-    const otpauthUrl = `otpauth://totp/${encodeURIComponent(user.email)}?secret=${secret.base32}&issuer=ContentCraft-AI`;
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(
+      user.email
+    )}?secret=${secret.base32}&issuer=ContentCraft-AI`;
 
     user.twoFactorSecret = secret.base32;
     await user.save();
@@ -219,9 +235,9 @@ export const generateQrAndSecretKey = async (req, res) => {
     return res.json({ qrCodeUrl, secret: secret.base32 });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 export const verify2FASecret = async (req, res) => {
   const { userId, token } = req.body;

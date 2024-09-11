@@ -37,6 +37,122 @@ export async function uploadUserProfileImageToFirebaseStorage(req, res) {
     }
   }
 
+  export async function uploadIncidentReportImagesToFirebaseStorage(req, res) {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).send({ error: "Image files are required." });
+        }
+    
+        const uploadPromises = req.files.map(async (file) => {
+          const dateTime = giveCurrentDateTime();
+          const uniqueFilename = `${uuidv4()}_${file.originalname}_${dateTime}`;
+          const storageRef = ref(storage, `incident-report-images/${uniqueFilename}`);
+          const metadata = { contentType: file.mimetype };
+    
+          const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          return {
+            name: file.originalname,
+            path: storageRef.fullPath,
+            url: downloadURL,
+          };
+        });
+    
+        const uploadedFiles = await Promise.all(uploadPromises);
+        return uploadedFiles;
+      } catch (error) {
+        console.error(error);
+        throw new Error("An error occurred while uploading the files.");
+      }
+    }
+
+    export async function uploadAccountAssistanceSupportImagesToFirebaseStorage(req, res) {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).send({ error: "Image files are required." });
+        }
+    
+        const uploadPromises = req.files.map(async (file) => {
+          const dateTime = giveCurrentDateTime();
+          const uniqueFilename = `${uuidv4()}_${file.originalname}_${dateTime}`;
+          const storageRef = ref(storage, `technical-issue-support-images/${uniqueFilename}`);
+          const metadata = { contentType: file.mimetype };
+    
+          const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          return {
+            name: file.originalname,
+            path: storageRef.fullPath,
+            url: downloadURL,
+          };
+        });
+    
+        const uploadedFiles = await Promise.all(uploadPromises);
+        return uploadedFiles;
+      } catch (error) {
+        console.error(error);
+        throw new Error("An error occurred while uploading the files.");
+      }
+    }
+
+    export async function uploadTechnicalIssueSupportImagesToFirebaseStorage(req, res) {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).send({ error: "Image files are required." });
+        }
+    
+        const uploadPromises = req.files.map(async (file) => {
+          const dateTime = giveCurrentDateTime();
+          const uniqueFilename = `${uuidv4()}_${file.originalname}_${dateTime}`;
+          const storageRef = ref(storage, `account-assitance-support-images/${uniqueFilename}`);
+          const metadata = { contentType: file.mimetype };
+    
+          const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          return {
+            name: file.originalname,
+            path: storageRef.fullPath,
+            url: downloadURL,
+          };
+        });
+    
+        const uploadedFiles = await Promise.all(uploadPromises);
+        return uploadedFiles;
+      } catch (error) {
+        console.error(error);
+        throw new Error("An error occurred while uploading the files.");
+      }
+    }
+
+    export async function uploadContentGenerationIssueSupportImagesToFirebaseStorage(req, res) {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).send({ error: "Image files are required." });
+        }
+    
+        const uploadPromises = req.files.map(async (file) => {
+          const dateTime = giveCurrentDateTime();
+          const uniqueFilename = `${uuidv4()}_${file.originalname}_${dateTime}`;
+          const storageRef = ref(storage, `content-generation-issue-support-images/${uniqueFilename}`);
+          const metadata = { contentType: file.mimetype };
+    
+          const snapshot = await uploadBytesResumable(storageRef, file.buffer, metadata);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+          return {
+            name: file.originalname,
+            path: storageRef.fullPath,
+            url: downloadURL,
+          };
+        });
+    
+        const uploadedFiles = await Promise.all(uploadPromises);
+        return uploadedFiles;
+      } catch (error) {
+        console.error(error);
+        throw new Error("An error occurred while uploading the files.");
+      }
+    }
+
  export async function deleteImageFromFirebaseStorage(imagePath) {
     try {
       const storageRef = ref(storage, imagePath);
