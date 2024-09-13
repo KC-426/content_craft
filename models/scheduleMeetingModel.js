@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-const feedbackSchema = new mongoose.Schema(
+const scheduleMeetingSchema = new mongoose.Schema(
   {
-    title: {
+    meetingTitle: {
       type: String,
       required: true,
     },
@@ -11,14 +11,24 @@ const feedbackSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: Date,
+      type: String,
+      required: true,
+    },
+    inviteCollaborator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "InviteCollaborator",
+      required: true
+    },
+    link: {
+      type: String,
+      required: true,
+    },
+    meetingAgenda: {
+      type: String,
       required: true,
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model(
-  "Feedback",
-  feedbackSchema
-);
+export default mongoose.model("Schedule Meeting", scheduleMeetingSchema);
