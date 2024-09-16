@@ -20,6 +20,7 @@ import accountAssistanceSupportRoutes from "./routes/accountAssistanceRoutes.js"
 import contentGenerationIssueSupportRoutes from "./routes/contentGenerationIssue.js";
 import inviteCollaboratorRoutes from "./routes/inviteCollaboratorRoutes.js";
 import scheduleMeetingRoutes from "./routes/scheduleMeetingRoutes.js";
+import featuredContentRoutes from "./routes/featuredContentRoutes.js"
 
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", subscribeRoutes);
@@ -31,6 +32,8 @@ app.use("/api/v1", accountAssistanceSupportRoutes);
 app.use("/api/v1", contentGenerationIssueSupportRoutes);
 app.use("/api/v1", inviteCollaboratorRoutes);
 app.use("/api/v1", scheduleMeetingRoutes);
+app.use("/api/v1", featuredContentRoutes);
+
 
 mongoose
   .connect(MONGODB_URI)

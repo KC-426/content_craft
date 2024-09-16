@@ -15,7 +15,6 @@ export const userSignup = async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     
-    // Check if user already exists
     const user = await userSchema.findOne({ email });
     if (user) {
       return res
@@ -23,14 +22,12 @@ export const userSignup = async (req, res) => {
         .json({ message: "User already exists, please login!" });
     }
 
-    // Validate that passwords match
     if (password !== confirmPassword) {
       return res
         .status(400)
         .json({ message: "Password and confirm password should match!" });
     }
 
-    // Validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({ 

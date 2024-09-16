@@ -39,6 +39,17 @@ const userSchema = new mongoose.Schema(
     },
     twoFactorSecret: String,
     isTwoFactorEnabled: { type: Boolean, default: false },
+    chats: [
+      {
+        chatMessage: {
+          type: String,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now  
+        }
+      },
+    ],
   },
   { timestamps: true }
 );
