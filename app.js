@@ -10,6 +10,14 @@ app.use(express.json());
 const PORT = process.env.PORT;
 const { MONGODB_URI } = process.env;
 
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+
 import userRoutes from "./routes/userRoutes.js";
 import subscribeRoutes from "./routes/subscribeRoutes.js";
 import incidentReportFormRoutes from "./routes/incidentReportingFrom.js";
@@ -20,7 +28,9 @@ import accountAssistanceSupportRoutes from "./routes/accountAssistanceRoutes.js"
 import contentGenerationIssueSupportRoutes from "./routes/contentGenerationIssue.js";
 import inviteCollaboratorRoutes from "./routes/inviteCollaboratorRoutes.js";
 import scheduleMeetingRoutes from "./routes/scheduleMeetingRoutes.js";
-import featuredContentRoutes from "./routes/featuredContentRoutes.js"
+import featuredContentRoutes from "./routes/featuredContentRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import taskRoutes from "./routes/assignTaskRoutes.js";
 
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", subscribeRoutes);
@@ -33,7 +43,13 @@ app.use("/api/v1", contentGenerationIssueSupportRoutes);
 app.use("/api/v1", inviteCollaboratorRoutes);
 app.use("/api/v1", scheduleMeetingRoutes);
 app.use("/api/v1", featuredContentRoutes);
+app.use("/api/v1", projectRoutes);
+app.use("/api/v1", taskRoutes);
 
+app.use("/", (req, res) => {
+  console.log("Working ");
+  res.send("WORKING");
+});
 
 mongoose
   .connect(MONGODB_URI)

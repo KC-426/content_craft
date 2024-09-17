@@ -35,10 +35,8 @@ export const userSignup = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPwd = await bcrypt.hash(password, 12);
 
-    // Create new user
     const newUser = new userSchema({
       firstName,
       lastName,
