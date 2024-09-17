@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors"
+import cookieParser from "cookie-parser";
 
 const app = express();
 dotenv.config({ path: "config/.env" });
@@ -54,7 +56,7 @@ app.use("/", (req, res) => {
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
-    console.log("DB Connected !");
+    console.log("DB Connected!");
   })
   .catch((err) => console.log(err));
 app.listen(PORT, () => {

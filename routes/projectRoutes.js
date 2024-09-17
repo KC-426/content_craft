@@ -4,7 +4,7 @@ import { addProject, deleteProject, getProjects } from "../controllers/projectCo
 const router = express()
 
 router.route("/add/project").post(addProject);
-router.route("/get/project").get(getProjects);
+router.route("/get/projects").get(getProjects);
 router.route("/delete/project/:projectId").delete(deleteProject);
 
 

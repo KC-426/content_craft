@@ -2,10 +2,10 @@ import Project from "../models/projectModel.js";
 
 export const addProject = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { projectName, description } = req.body;
 
     const project = new Project({
-      title,
+      projectName,
       description,
     });
 
@@ -43,7 +43,7 @@ export const deleteProject = async (req, res) => {
       return res.status(404).json({ message: "No project found!" });
     }
 
-    await Project.findOneAndDelete(projectId);
+    await Project.findByIdAndDelete(projectId);
 
     return res
       .status(200)

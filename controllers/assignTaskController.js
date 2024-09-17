@@ -1,4 +1,4 @@
-import assignTask from "../models/assignTaskModel.js";
+import assignTaskModel from "../models/assignTaskModel.js";
 import { uploadAssignTaskImagesToFirebaseStorage } from "../utils/helperFunctions.js";
 
 export const assignTask = async (req, res) => {
@@ -16,7 +16,7 @@ export const assignTask = async (req, res) => {
       res
     );
 
-    const task = await assignTask({
+    const task = await assignTaskModel({
       title,
       dueDate,
       description,
@@ -37,7 +37,7 @@ export const assignTask = async (req, res) => {
 
 export const getAssignedTasks = async (req, res) => {
   try {
-    const tasks = await assignTask.find();
+    const tasks = await assignTaskModel.find();
 
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: "No task found." });

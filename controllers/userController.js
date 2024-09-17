@@ -8,8 +8,30 @@ import {
 } from "../utils/helperFunctions.js";
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
-
 dotenv.config({ path: "config/.env" });
+import nodemailer from 'nodemailer'
+import userModel from "../models/userModel.js";
+
+const generateOTP = () => {
+  let digits = "0123456789";
+  let OTP = "";
+  let len = digits.length;
+  for (let i = 0; i < 6; i++) {
+    OTP += digits[Math.floor(Math.random() * len)];
+  }
+  return OTP;
+};
+
+// Create a Nodemailer transporter for sending emails
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use Gmail, or change to your email provider
+  auth: {
+    user: process.env.GMAIL_USER, // Your email
+    pass: process.env.GMAIL_PASS, // Your email password or app password
+  },
+});
+
+
 
 export const userSignup = async (req, res) => {
   try {
@@ -289,5 +311,71 @@ export const validate2FALogin = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
+
+export const updateUserEmail = async (req, res) => {
+  const { userId } = req.params
+  try {
+    const { email } = req.body;
+
+    const otp = generateOTP();
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Email Verification Code',
+      text: `Your OTP verification code is: ${otp}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    user.otp = otp;  
+    user.tempEmail = email;
+
+    await user.save();
+
+    res.status(200).json({ message: "OTP sent to new email for verification!" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+// API to verify OTP and update email address
+export const verifyOtpAndUpdateEmail = async (req, res) => {
+  const {userId} = req.params
+  try {
+    const { otp } = req.body;
+
+    // Find the user (assuming user ID is in req.userId)
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Check if the OTP matches
+    if (user.otp === otp) {
+      // Update the email with the new verified one
+      user.email = user.tempEmail;
+      user.otp = null; // Clear the OTP
+      user.tempEmail = null; // Clear the temp email field
+
+      await user.save();
+      return res.status(200).json({ message: "Email updated successfully!", user });
+    } else {
+      return res.status(400).json({ message: "Invalid OTP!" });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error!" });
   }
 };
