@@ -350,24 +350,20 @@ export const updateUserEmail = async (req, res) => {
   }
 };
 
-// API to verify OTP and update email address
 export const verifyOtpAndUpdateEmail = async (req, res) => {
   const {userId} = req.params
   try {
     const { otp } = req.body;
 
-    // Find the user (assuming user ID is in req.userId)
     const user = await userModel.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found!" });
     }
 
-    // Check if the OTP matches
     if (user.otp === otp) {
-      // Update the email with the new verified one
       user.email = user.tempEmail;
-      user.otp = null; // Clear the OTP
-      user.tempEmail = null; // Clear the temp email field
+      user.otp = null; 
+      user.tempEmail = null; 
 
       await user.save();
       return res.status(200).json({ message: "Email updated successfully!", user });
