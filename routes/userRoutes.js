@@ -1,6 +1,6 @@
 import express from "express"
 import multer from "multer"
-import { deleteUser, fetchUserProfile, generateQrAndSecretKey, logoutUser, updateUserEmail, updateUserProfile, userLogin, userProfile, userSignup, validate2FALogin, verify2FASecret, verifyOtpAndUpdateEmail } from "../controllers/userController.js"
+import { deleteUser, fetchUserProfile, generateQrAndSecretKey, logoutUser, sendOtp, updateUserProfile, userLogin, userProfile, userSignup, validate2FALogin, verify2FASecret, verifyOtpAndUpdateEmail, verifyOtpAndUpdatePassword } from "../controllers/userController.js"
 
 const storage = multer.memoryStorage()
 const upload = multer({
@@ -20,8 +20,10 @@ router.route("/logout/user").post(logoutUser);
 router.route("/generate/secretkey/qr").post(generateQrAndSecretKey);
 router.route("/verify/secretkey").post(verify2FASecret);
 router.route("/validate/twofactor/login").post(validate2FALogin);
-router.route("/update/email/:userId").post(updateUserEmail);
-router.route("/verify/otp").put(verifyOtpAndUpdateEmail);
+router.route("/send/otp/:userId").post(sendOtp);
+router.route("/update/email/:userId").put(verifyOtpAndUpdateEmail);
+router.route("/update/password/:userId").put(verifyOtpAndUpdatePassword);
+
 
 
 

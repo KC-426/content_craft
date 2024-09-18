@@ -9,8 +9,9 @@ import {
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 dotenv.config({ path: "config/.env" });
-import nodemailer from 'nodemailer'
+import nodemailer from "nodemailer";
 import userModel from "../models/userModel.js";
+import { UsageRecordInstance } from "twilio/lib/rest/supersim/v1/usageRecord.js";
 
 const generateOTP = () => {
   let digits = "0123456789";
@@ -24,19 +25,17 @@ const generateOTP = () => {
 
 // Create a Nodemailer transporter for sending emails
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use Gmail, or change to your email provider
+  service: "gmail", // Use Gmail, or change to your email provider
   auth: {
     user: process.env.GMAIL_USER, // Your email
     pass: process.env.GMAIL_PASS, // Your email password or app password
   },
 });
 
-
-
 export const userSignup = async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
-    
+
     const user = await userSchema.findOne({ email });
     if (user) {
       return res
@@ -50,10 +49,12 @@ export const userSignup = async (req, res) => {
         .json({ message: "Password and confirm password should match!" });
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).json({ 
-        message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
       });
     }
 
@@ -74,7 +75,6 @@ export const userSignup = async (req, res) => {
     return res.status(500).json({ message: "Internal server error!" });
   }
 };
-
 
 export const userLogin = async (req, res) => {
   try {
@@ -314,14 +314,9 @@ export const validate2FALogin = async (req, res) => {
   }
 };
 
-
-
-
-export const updateUserEmail = async (req, res) => {
-  const { userId } = req.params
+export const sendOtp = async (req, res) => {
+  const { userId } = req.params;
   try {
-    const { email } = req.body;
-
     const otp = generateOTP();
 
     const user = await userModel.findById(userId);
@@ -331,19 +326,20 @@ export const updateUserEmail = async (req, res) => {
 
     const mailOptions = {
       from: process.env.GMAIL_USER,
-      to: email,
-      subject: 'Email Verification Code',
+      to: user.email,
+      subject: "Email Verification Code",
       text: `Your OTP verification code is: ${otp}`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    user.otp = otp;  
-    user.tempEmail = email;
+    user.otp = otp;
 
     await user.save();
 
-    res.status(200).json({ message: "OTP sent to new email for verification!" });
+    res
+      .status(200)
+      .json({ message: "OTP sent to your email for verification!", otp });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Internal server error!" });
@@ -351,9 +347,10 @@ export const updateUserEmail = async (req, res) => {
 };
 
 export const verifyOtpAndUpdateEmail = async (req, res) => {
-  const {userId} = req.params
+  const { userId } = req.params;
   try {
-    const { otp } = req.body;
+    const { otp, updatedEmail } = req.body;
+    console.log(req.body);
 
     const user = await userModel.findById(userId);
     if (!user) {
@@ -361,12 +358,13 @@ export const verifyOtpAndUpdateEmail = async (req, res) => {
     }
 
     if (user.otp === otp) {
-      user.email = user.tempEmail;
-      user.otp = null; 
-      user.tempEmail = null; 
+      user.email = updatedEmail || user.email;
+      user.otp = null;
 
       await user.save();
-      return res.status(200).json({ message: "Email updated successfully!", user });
+      return res
+        .status(200)
+        .json({ message: "Email updated successfully!", user });
     } else {
       return res.status(400).json({ message: "Invalid OTP!" });
     }
@@ -375,3 +373,50 @@ export const verifyOtpAndUpdateEmail = async (req, res) => {
     return res.status(500).json({ message: "Internal server error!" });
   }
 };
+
+export const verifyOtpAndUpdatePassword = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const { password, newPassword, confirmPassword, otp } = req.body;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP!" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid Password!" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Confirm Password should match!" });
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+    user.password = hashedNewPassword;
+    user.otp = null;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully!" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
