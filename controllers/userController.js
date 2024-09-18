@@ -11,7 +11,6 @@ import qrcode from "qrcode";
 dotenv.config({ path: "config/.env" });
 import nodemailer from "nodemailer";
 import userModel from "../models/userModel.js";
-import { UsageRecordInstance } from "twilio/lib/rest/supersim/v1/usageRecord.js";
 
 const generateOTP = () => {
   let digits = "0123456789";
@@ -19,16 +18,15 @@ const generateOTP = () => {
   let len = digits.length;
   for (let i = 0; i < 6; i++) {
     OTP += digits[Math.floor(Math.random() * len)];
-  }
+  } 
   return OTP;
 };
 
-// Create a Nodemailer transporter for sending emails
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Use Gmail, or change to your email provider
+  service: "gmail", 
   auth: {
-    user: process.env.GMAIL_USER, // Your email
-    pass: process.env.GMAIL_PASS, // Your email password or app password
+    user: process.env.GMAIL_USER, 
+    pass: process.env.GMAIL_PASS, 
   },
 });
 
